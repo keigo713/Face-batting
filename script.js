@@ -52,6 +52,22 @@ function resetGame() {
   faces.forEach(face => face.classList.add('hidden'));
 }
 
+const faceImages = [
+  { src: '細川成也.jpeg', alt: '細川成也', weight: 0.5 },
+  { src: 'My picture.jpeg', alt: 'My picture', weight: 0.3 },
+  { src: '細川成也イラスト.jpeg', alt: '細川成也イラスト', weight: 0.2 }
+];
+
+function getWeightedRandomImage() {
+  const r = Math.random();
+  let sum = 0;
+  for (const img of faceImages) {
+    sum += img.weight;
+    if (r < sum) return img;
+  }
+  return faceImages[faceImages.length - 1]; // 念のため
+}
+
 function startGame() {
   if (isPlaying) return;
   isPlaying = true;
@@ -69,19 +85,32 @@ function startGame() {
 
 function popupFace() {
   faces.forEach(face => face.classList.add('hidden'));
+  // ランダムな穴と重み付きランダムな画像を選ぶ
   const idx = Math.floor(Math.random() * holes.length);
-  const face = holes[idx].querySelector('.face-img');
-  face.classList.remove('hidden');
+  const faceImg = holes[idx].querySelector('.face-img');
+  const img = getWeightedRandomImage();
+  faceImg.src = img.src;
+  faceImg.alt = img.alt;
+  faceImg.classList.remove('hidden');
   popupTimeout = setTimeout(() => {
-    face.classList.add('hidden');
+    faceImg.classList.add('hidden');
     if (isPlaying) popupFace();
-  }, 900);
+  }, 1000);
 }
 
 faces.forEach(face => {
   face.addEventListener('click', () => {
     if (!face.classList.contains('hidden') && isPlaying) {
-      score++;
+      // 得点処理
+      let point = 0;
+      if (face.getAttribute('src') === 'My picture.jpeg') {
+        point = -3;
+      } else if (face.getAttribute('src') === '細川成也.jpeg') {
+        point = 1;
+      } else if (face.getAttribute('src') === '細川成也イラスト.jpeg') {
+        point = 3;
+      }
+      score += point;
       scoreDisplay.textContent = `スコア: ${score}`;
       // ホームラン音再生（再生できない場合はcatchで無視）
       try {
